@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "HTTP://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+	<settings>
+		<setting name="mapUnderscoreToCamelCase" value="true" />
+		<setting name="callSettersOnNulls" value="true"/><!-- data가 null일때 속성 설정 -->
+	</settings>
+	 
+	<typeAliases>
+  		<typeAlias type="com.greit.weys.mypage.MypageVO" alias="mypageVO"/>
+  		<typeAlias type="com.greit.weys.mypage.CouponVO" alias="couponVO"/>
+  		<typeAlias type="com.greit.weys.rsv.RsvVO" alias="rsvVO"/>
+  		<typeAlias type="com.greit.weys.rsv.RsvUnitVO" alias="rsvUnitVO"/>
+  		<typeAlias type="com.greit.weys.rsv.RsvStoreVO" alias="rsvStoreVO"/>
+  		<typeAlias type="com.greit.weys.event.EventVO" alias="eventVO"/>
+  		<typeAlias type="com.greit.weys.partner.PartnerVO" alias="partnerVO"/>
+  	</typeAliases>
+</configuration>

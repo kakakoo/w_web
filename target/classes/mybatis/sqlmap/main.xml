@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.greit.weys.main.MainDao">
+
+	<!-- 에러 등록 -->
+	<insert id="insertErrLog">
+	/* insertErrLog */
+		INSERT INTO ERR_LOG(
+			URL
+			, REQ
+			, MSG
+			, USR_ID
+			, REG_DTTM
+		) VALUES (
+			#{url}
+			, #{req}
+			, #{msg}
+			, #{usrId}
+			, NOW()
+		)
+	</insert>
+	
+	<!-- 사용자 확인 -->
+	<select id="selectUserInfo" resultType="map">
+		/* selectUserInfo */
+		SELECT
+			USR_ID 
+			, USR_PW 
+			, CAST(AES_DECRYPT(USR_NM, SHA2(#{encKey},512)) AS CHAR) USR_NM
+		FROM USER
+		WHERE USR_ST = 'Y'
+			AND USR_TEL = AES_ENCRYPT(#{usrTel}, SHA2(#{encKey},512))
+			AND NATION = #{usrNation}
+	</select>
+	
+	<!-- 사용자 확인 -->
+	<select id="selectUsrId" resultType="string">
+		/* selectUsrId */
+		SELECT
+			USR_ID 
+		FROM USER
+		WHERE USR_ST = 'Y'
+			AND USR_TEL = AES_ENCRYPT(#{usrTel}, SHA2(#{encKey},512))
+			AND NATION = #{usrNation}
+	</select>
+	
+	<!-- 사용자 비밀번호 입력  -->
+	<update id="updateUsrPwd">
+	/* updateUsrPwd */
+		UPDATE USER
+			SET USR_PW = #{usrPw}
+		WHERE USR_ID = #{usrId}
+	</update>
+	
+	<!-- 전화번호 중복 확인 -->
+	<select id="selectTelCnt" resultType="int">
+		/* selectTelCnt */
+		SELECT
+			COUNT(USR_ID)
+		FROM USER
+		WHERE USR_ST = 'Y'
+			AND USR_TEL = AES_ENCRYPT(#{usrTel}, SHA2(#{encKey},512))
+			AND NATION = #{usrNation}
+	</select>
+
+	<!-- 이메일 중복 확인 -->
+	<select id="selectEmailCnt" resultType="int">
+		/* selectEmailCnt */
+		SELECT
+			COUNT(USR_ID)
+		FROM USER
+		WHERE USR_ST = 'Y'
+			AND USR_EMAIL = AES_ENCRYPT(#{usrEmail}, SHA2(#{encKey},512))
+	</select>
+	
+	<!-- 친구 추천인 코드  -->
+	<select id="checkFrdCd" resultType="int">
+	/* checkFrdCd */
+		SELECT
+			COUNT(USR_ID)
+		FROM USER
+		WHERE FRD_CD = #{value}
+	</select>
+	
+	<!-- 사용자 회원 가입  -->
+	<insert id="insertUserInfo" useGeneratedKeys="true" keyProperty="usrId">
+	/* insertUserInfo */
+		INSERT INTO USER(
+			USR_EMAIL
+			, USR_TEL
+			, NATION
+			, AGREE
+			, FRD_CD
+			, USR_FROM
+			, USR_ST
+			, USR_REG_DTTM
+		) VALUES(
+			AES_ENCRYPT(#{usrEmail}, SHA2(#{encKey},512))
+			, AES_ENCRYPT(#{usrTel}, SHA2(#{encKey},512))
+			, #{usrNation}
+			, 'Y'
+			, #{frdCd}
+			, 'W'
+			, 'Y'
+			, NOW()
+		)
+	</insert>
+	
+	<!-- 사용자 비밀번호 입력  -->
+	<update id="updateUserPwAk">
+	/* updateUserPwAk */
+		UPDATE USER
+			SET USR_PW = #{usrPw}
+				, USR_AK = #{ak}
+		WHERE USR_ID = #{usrId}
+	</update>
+	
+	<!-- 회원가입한 이력 확인 -->
+	<select id="selectUsrTelCnt" resultType="int">
+	/* selectUsrTelCnt */
+		SELECT
+			COUNT(USR_ID)
+		FROM USER
+		WHERE USR_TEL = (SELECT USR_TEL FROM USER WHERE USR_ID = #{value})
+			AND USR_ID != #{value}
+	</select>
+	
+	<!-- 회원가입 쿠폰 리스트 -->
+	<select id="selectJoinCouponList" resultType="int">
+	/* selectJoinCouponList */
+		SELECT
+			COUPON_ID
+		FROM COUPON_INFO
+		WHERE COUPON_CODE = #{value}
+			AND START_DT &lt;= NOW()
+			AND END_DT &gt;= NOW()
+	</select>
+	
+	<!-- 회원가입 무료 쿠폰 -->
+	<insert id="insertJoinCoupon">
+	/* insertJoinCoupon */
+		INSERT INTO COUPON_HIST(
+			USR_ID
+			, COUPON_ID
+			, DUE_DT
+			, USE_ST
+			, REG_DTTM
+		) VALUES (
+			#{usrId}
+			, #{couponId}
+			, #{dueDt}
+			, 'Y'
+			, NOW()
+		)
+	</insert>
+	
+	<!-- 바코드 중복 체크 -->
+	<select id="selectMemberBarcodeCnt" resultType="int">
+	/* selectMemberBarcodeCnt */
+		SELECT
+			COUNT(MEMBER_ID)
+		FROM MEMBER
+		WHERE BARCODE = #{value}
+	</select>
+	
+	<!-- 멤버십 등록 -->
+	<insert id="insertMemberInfo">
+	/* insertMemberInfo */
+		INSERT INTO MEMBER(
+			USR_ID
+			, BARCODE
+			, BARCODE_URL
+			, START_DT
+			, END_DT
+			, COST
+			, LIMIT_AMNT
+		) VALUES (
+			#{usrId}
+			, #{barcode}
+			, #{barcodeUrl}
+			, NOW()
+			, #{endDt}
+			, #{cost}
+			, #{cost}
+		)
+	</insert>
+	
+	<!-- 통화 리스트 -->
+	<select id="selectUnit" resultType="map">
+	/* selectUnit */
+		SELECT
+			UNIT_CD
+			, LOWER(UNIT_CD) L_UNIT
+			, UNIT_NM
+		FROM UNIT
+		WHERE UNIT_ST = 'Y' 
+			AND RSV_ST = 'Y'
+		ORDER BY UNIT_SEQ
+	</select>
+	
+	<!-- 설문조사 중복 체크 -->
+	<select id="selectCheckSurvey" resultType="int">
+	/* selectCheckSurvey */
+		SELECT
+			COUNT(SH_ID)
+		FROM SURVEY_HIST
+		WHERE RSV_NO = #{value}
+	</select>
+	
+	<!-- 설문조사 중복 체크 -->
+	<select id="selectCheckRsv" resultType="int">
+	/* selectCheckRsv */
+		SELECT
+			COUNT(RSV_ID)
+		FROM RSV
+		WHERE RSV_NO = #{value}
+			AND RSV_ST = 'F'
+	</select>
+	
+	<!-- 예약자명 -->
+	<select id="selectUsrNm" resultType="string">
+	/* selectUsrNm */
+		SELECT
+			CASE WHEN U.FORIGN = 'Y' THEN CONCAT(CAST(AES_DECRYPT(U.GIV_NM, SHA2(#{encKey},512)) AS CHAR), ' ', CAST(AES_DECRYPT(U.SUR_NM, SHA2(#{encKey},512)) AS CHAR))
+				ELSE CAST(AES_DECRYPT(IFNULL(U.USR_NM, R.RSV_NM), SHA2(#{encKey},512)) AS CHAR) END RSV_NM
+		FROM RSV R
+		LEFT OUTER JOIN USER U ON R.USR_ID = U.USR_ID
+		WHERE R.RSV_NO = #{rsvNo}
+			AND R.RSV_ST = 'F'
+	</select>
+	
+	<!-- 설문조사 등록 -->
+	<insert id="insertSurvey">
+	/* insertSurvey */
+		INSERT INTO SURVEY_HIST(
+			S_ID
+			, RSV_NO
+			, FIRST_A
+			, SECOND_A
+			, THIRD_A
+			, FOURTH_A
+			, FIFTH_A
+			, MEMO
+			, REG_DTTM
+		) VALUES (
+			#{sId}
+			, #{rsvNo}
+			, #{first_a}
+			, #{second_a}
+			, #{third_a}
+			, #{fourth_a}
+			, #{fifth_a}
+			, #{memo}
+			, NOW()
+		)
+	</insert>
+	
+	<!-- 친구 추천인 검색  -->
+	<select id="selectFrdId" resultType="int">
+	/* selectFrdId */
+		SELECT
+			USR_ID
+		FROM USER
+		WHERE FRD_CD = #{value}
+	</select>
+	
+	<!-- 친구 추천 쿠폰 등록 -->
+	<insert id="insertFrdCoupon">
+	/* insertFrdCoupon */
+		INSERT INTO COUPON_HIST(
+			USR_ID
+			, COUPON_ID
+			, DUE_DT
+			, REG_DTTM
+			, USE_ST
+		) VALUES (
+			#{targetUsrId}
+			, #{couponId}
+			, CONCAT(#{dutDt}, ' 23:59:59')
+			, NOW()
+			, 'Y'
+		)
+	</insert>
+	
+	<!-- 친구 추천인 등록 횟수 체크  -->
+	<select id="selectFrdCnt" resultType="int">
+	/* selectFrdCnt */
+		SELECT
+			COUNT(TARGET_FRD)
+		FROM FRD_MAP
+		WHERE TARGET_FRD = #{value}
+	</select>
+	
+	<!-- 친구 추천인 등록  -->
+	<insert id="insertFrdMap">
+	/* insertFrdMap */
+		INSERT INTO FRD_MAP(
+			TARGET_FRD
+			, REQ_FRD
+			, REG_DTTM
+		) VALUES (
+			#{targetUsrId}
+			, #{reqUsrId}
+			, NOW()
+		)
+	</insert>
+	
+</mapper>

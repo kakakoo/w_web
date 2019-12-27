@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.greit.weys.event.EventDao">
+
+	<!-- 사용자 id 값 가져오기 -->
+	<select id="selectUsrIdByAk" resultType="int">
+		/* selectUsrIdByAk */
+		SELECT
+			USR_ID
+		FROM USER
+		WHERE USR_AK = #{value}
+	</select>
+
+	<!-- 이벤트 상세 -->
+	<select id="selectEvent" resultType="eventVO">
+		/* selectEvent */
+		SELECT
+			EVENT_ID
+			, EVENT_TITLE
+			, EVENT_IMG
+			, COUPON_ID
+			, EVENT_TP 
+			, EVENT_TXT
+			, BTN_PST
+		FROM EVENT
+		WHERE EVENT_ID = #{value}
+	</select>
+
+	<!-- 이벤트 기간 확인 -->
+	<select id="checkEventDay" resultType="int">
+	/* checkEventDay */
+		SELECT
+			COUNT(EVENT_ID)
+		FROM EVENT
+		WHERE EVENT_ID = #{eventId}
+			AND END_DT &gt;= DATE_FORMAT(NOW(), '%Y.%m.%d')
+	</select>
+	
+	<!-- 이벤트 참여여부 확인 -->
+	<select id="checkEventJoin" resultType="int">
+	/* checkEventJoin */
+		SELECT
+			COUNT(USR_ID)
+		FROM EVENT_USER
+		WHERE EVENT_ID = #{eventId}
+			AND USR_ID IN (
+			SELECT 
+				F.USR_ID
+			FROM USER U
+			LEFT OUTER JOIN USER F ON U.USR_TEL = F.USR_TEL
+			WHERE U.USR_ID = #{usrId}
+		)
+	</select>
+	
+	<!-- 이벤트 정보 -->
+	<select id="selectEventInfo" resultType="map">
+	/* selectEventInfo */
+		SELECT
+			EVENT_TITLE
+			, EVENT_DESC
+			, EVENT_LIMIT
+			, EVENT_TP
+			, COUPON_ID
+			, MEMBER_POINT
+			, MEMBER_PERIOD
+			, (SELECT 
+					COUNT(EVENT_ID)
+				FROM EVENT_USER 
+				WHERE EVENT_ID = #{value}) EVENT_CNT
+		FROM EVENT
+		WHERE EVENT_ID = #{value}
+	</select>
+	
+	<!-- 배송 쿠폰 정보 -->
+	<select id="selectCouponInfo" resultType="map">
+	/* selectCouponInfo */
+		SELECT
+			MEMBER_PERIOD
+			, PERIOD_TP
+			, END_DT
+			, COUPON_TP
+		FROM COUPON_INFO
+		WHERE COUPON_ID = #{value}
+	</select>
+	
+	<!-- 배송 쿠폰 등록 -->
+	<insert id="insertDeliverCoupon">
+	/* insertDeliverCoupon */
+		INSERT INTO COUPON_HIST(
+			USR_ID
+			, COUPON_ID
+			, DUE_DT
+			, REG_DTTM
+			, USE_ST
+		) VALUES (
+			#{usrId}
+			, #{couponId}
+			, #{dueDt}
+			, NOW()
+			, 'Y'
+		)
+	</insert>
+	
+	<!-- 이벤트 쿠폰 등록 -->
+	<insert id="insertCouponEvent">
+	/* insertCouponEvent */
+		INSERT INTO COUPON_HIST(
+			USR_ID
+			, COUPON_ID
+			, DUE_DT
+			, USE_ST
+			, REG_DTTM
+		)
+		SELECT
+			#{usrId}
+			, COUPON_ID
+			, END_DT
+			, 'Y'
+			, NOW()
+		FROM COUPON_INFO
+		WHERE COUPON_ID = #{couponId}
+	</insert>
+	
+	<!-- 이벤트 참여 -->
+	<insert id="insertEventJoin">
+	/* insertEventJoin */
+		INSERT INTO EVENT_USER(
+			EVENT_ID
+			, USR_ID
+			, REG_DTTM
+		) VALUES (
+			#{eventId}
+			, #{usrId}
+			, NOW()
+		)
+	</insert>
+	
+	<!-- 이벤트 리스트 -->
+	<select id="selectEventList" resultType="eventVO">
+	/* selectEventList */
+		SELECT
+			E.EVENT_ID
+			, E.EVENT_TITLE
+			, E.EVENT_BNR
+			, CASE WHEN EU.USR_ID IS NOT NULL THEN 'U' WHEN E.END_DT &lt; DATE_FORMAT(NOW(), '%Y.%m.%d') THEN 'D' ELSE E.EVENT_ST END EVENT_ST
+			, DATE_FORMAT(E.START_DT, '%y.%m.%d') START_DT
+			, DATE_FORMAT(E.END_DT, '%y.%m.%d') END_DT
+		FROM EVENT E
+		LEFT OUTER JOIN EVENT_USER EU ON E.EVENT_ID = EU.EVENT_ID
+			AND EU.USR_ID = #{usrId}
+		WHERE E.START_DT &lt;= NOW()
+			AND E.END_DT &gt;= DATE_FORMAT(NOW(), '%Y.%m.%d')
+			AND E.EVENT_ST = 'Y'
+		ORDER BY END_DT DESC
+		LIMIT #{pageSize} OFFSET #{searchPage}
+	</select>
+	
+	<!-- 이벤트 리스트 -->
+	<select id="selectEventListCnt" resultType="int">
+	/* selectEventListCnt */
+		SELECT
+			COUNT(EVENT_ID)
+		FROM EVENT
+		WHERE START_DT &lt;= NOW()
+			AND END_DT &gt;= DATE_FORMAT(NOW(), '%Y.%m.%d')
+			AND EVENT_ST = 'Y'
+	</select>
+	
+	<!-- 친구 추천인 코드 -->
+	<select id="selectFrdCd" resultType="string">
+	/* selectFrdCd */
+		SELECT
+			FRD_CD
+		FROM USER
+		WHERE USR_ID = #{value}
+	</select>
+	
+	<!-- 친구 추천인 이벤트 여부 -->
+	<select id="selectServerSt" resultType="string">
+	/* selectServerSt */
+		SELECT
+			ST
+		FROM SERVER_ST
+		WHERE TYPE = #{value}
+	</select>
+	
+</mapper>

@@ -1,0 +1,66 @@
+/* ----------------------------------------------------------------
+	Custom CSS
+
+	Add all your Custom Styled CSS here for New Styles or
+	Overwriting Default Theme Styles for Better Hanlding Updates
+-----------------------------------------------------------------*/
+
+
+.error-form::placeholder {
+  color: #dc3545 !important;
+  opacity: 1;
+}
+
+.wrap-loading{position: fixed;left:0;right:0;top:0;bottom:0;}
+.wrap-loading div{position: fixed;top:50%;left:50%;margin-left: -21px;margin-top: -21px;}
+.display-none{display:none;}
+
+@media (max-width : 991px){
+	.not-mobile{display:none;}	
+}
+@media (min-width : 992px){
+	.not-mobile{display:block;}	
+}
+
+
+.dialog_back{display:none;position:absolute;top:0;left:0;width:100%;height:100%;z-index:222;background-color:rgba(0,0,0,0.7);}
+.dialog{display:none;position:absolute;top:50%;left:50%;}
+.dialog_body{position:relative;width:400px;height:600px;margin-left:-200px;margin-top:-300px;z-index:223;}
+.dialog_title{text-align:center;margin-top:35%;}
+
+.dia_under{text-align: center;color: white;cursor: pointer;}
+
+
+.dia_btn {
+   background-color: #0065ff;
+   width: 100%;
+   padding: 12px;
+   color: white;
+   display: inline-block;
+   text-align: center;
+   border-radius: 6px;
+   font-weight: 600;
+   font-size: 14px;
+   cursor: pointer;
+}
+
+.dialog_button {
+   text-align: center;
+   margin: 10px;
+   font-size: 12px;
+   padding: 20px 60px;
+   box-sizing: border-box;
+}
+
+
+
+.noti_area{border-top:1px solid #d9d9d9; padding: 30px 30px; text-align: left; font-size: 11px; line-height: 20px;max-width:560px;margin:auto;box-sizing: border-box;background-color:#fff;}
+.join_btn{background-color:#0065ff;height: 50px;max-width: 560px;padding: 13px;box-sizing: border-box;color: white;border-radius: 8px;font-size:15px;    font-weight: 700;cursor:pointer;}
+.btn_area{text-align:center;height:110px;width:100%;margin: auto;background: #fff;padding: 30px;box-sizing: border-box;}
+
+
+/* Media Queries */
+/* @media screen and (max-width: 900px) { */
+/* .btn_area{width:100%;} */
+/* .noti_area{width:100%;} */
+/* } */

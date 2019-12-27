@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.greit.weys.partner.PartnerDao">
+
+	<!-- 협렵업체 확인 -->
+	<select id="selectPartnerInfo" resultType="partnerVO">
+	/* selectPartnerInfo */
+		SELECT
+			COP_ID
+			, COP_CD
+			, COP_NM
+			, COP_LOGO
+			, RSV_NM
+			, BG_OPCT
+		FROM COP
+		WHERE COP_CD = #{value}
+			AND COP_ST = 'Y'
+	</select>
+	
+</mapper>
